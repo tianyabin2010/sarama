@@ -149,10 +149,14 @@ func (b *Broker) Open(conf *Config) error {
 		return err
 	}
 
+	Logger.Println("Broker.Open() lock begin")
 	b.lock.Lock()
 
 	go withRecover(func() {
-		defer b.lock.Unlock()
+		defer func() {
+			Logger.Println("Broker.Open() lock end")
+			defer b.lock.Unlock()
+		}()
 
 		dialer := conf.getDialer()
 		b.conn, b.connErr = dialer.Dial("tcp", b.addr)
@@ -217,16 +221,21 @@ func (b *Broker) Open(conf *Config) error {
 // Connected returns true if the broker is connected and false otherwise. If the broker is not
 // connected but it had tried to connect, the error from that connection attempt is also returned.
 func (b *Broker) Connected() (bool, error) {
+	Logger.Println("Broker.Connected() lock begin")
 	b.lock.Lock()
 	defer b.lock.Unlock()
-
+	Logger.Println("Broker.Connected() lock end")
 	return b.conn != nil, b.connErr
 }
 
 //Close closes the broker resources
 func (b *Broker) Close() error {
+	Logger.Println("Broker.Close() lock begin")
 	b.lock.Lock()
-	defer b.lock.Unlock()
+	defer func() {
+		Logger.Println("Broker.Close() lock end")
+		defer b.lock.Unlock()
+	}()
 
 	if b.conn == nil {
 		return ErrNotConnected
