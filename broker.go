@@ -151,10 +151,10 @@ func (b *Broker) Open(conf *Config) error {
 
 	Logger.Println("Broker.Open() lock begin")
 	b.lock.Lock()
-
+	Logger.Println("Broker.Open() lock end")
 	go withRecover(func() {
 		defer func() {
-			Logger.Println("Broker.Open() lock end")
+			Logger.Println("Broker.Open() unlock")
 			defer b.lock.Unlock()
 		}()
 		Logger.Println("Broker.Open() -- 1")
@@ -227,8 +227,9 @@ func (b *Broker) Open(conf *Config) error {
 func (b *Broker) Connected() (bool, error) {
 	Logger.Println("Broker.Connected() lock begin")
 	b.lock.Lock()
-	defer b.lock.Unlock()
 	Logger.Println("Broker.Connected() lock end")
+	defer b.lock.Unlock()
+	Logger.Println("Broker.Connected() unlock")
 	return b.conn != nil, b.connErr
 }
 
@@ -236,8 +237,9 @@ func (b *Broker) Connected() (bool, error) {
 func (b *Broker) Close() error {
 	Logger.Println("Broker.Close() lock begin")
 	b.lock.Lock()
+	Logger.Println("Broker.Close() lock end")
 	defer func() {
-		Logger.Println("Broker.Close() lock end")
+		Logger.Println("Broker.Close() unlock")
 		defer b.lock.Unlock()
 	}()
 
@@ -726,8 +728,13 @@ func (b *Broker) write(buf []byte) (n int, err error) {
 }
 
 func (b *Broker) send(rb protocolBody, promiseResponse bool, responseHeaderVersion int16) (*responsePromise, error) {
+	Logger.Println("Broker.send() lock begin")
 	b.lock.Lock()
-	defer b.lock.Unlock()
+	Logger.Println("Broker.send() lock end")
+	defer func() {
+		Logger.Println("Broker.send() unlock")
+		defer b.lock.Unlock()
+	}()
 	Logger.Printf("entry send")
 	if b.conn == nil {
 		if b.connErr != nil {
