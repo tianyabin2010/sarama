@@ -157,22 +157,25 @@ func (b *Broker) Open(conf *Config) error {
 			Logger.Println("Broker.Open() lock end")
 			defer b.lock.Unlock()
 		}()
-
+		Logger.Println("Broker.Open() -- 1")
 		dialer := conf.getDialer()
+		Logger.Println("Broker.Open() -- 2")
 		b.conn, b.connErr = dialer.Dial("tcp", b.addr)
+		Logger.Println("Broker.Open() -- 3")
 		if b.connErr != nil {
 			Logger.Printf("Failed to connect to broker %s: %s\n", b.addr, b.connErr)
 			b.conn = nil
 			atomic.StoreInt32(&b.opened, 0)
 			return
 		}
+		Logger.Println("Broker.Open() -- 4")
 		if conf.Net.TLS.Enable {
 			b.conn = tls.Client(b.conn, validServerNameTLS(b.addr, conf.Net.TLS.Config))
 		}
-
+		Logger.Println("Broker.Open() -- 5")
 		b.conn = newBufConn(b.conn)
 		b.conf = conf
-
+		Logger.Println("Broker.Open() -- 6")
 		// Create or reuse the global metrics shared between brokers
 		b.incomingByteRate = metrics.GetOrRegisterMeter("incoming-byte-rate", conf.MetricRegistry)
 		b.requestRate = metrics.GetOrRegisterMeter("request-rate", conf.MetricRegistry)
@@ -182,12 +185,13 @@ func (b *Broker) Open(conf *Config) error {
 		b.responseRate = metrics.GetOrRegisterMeter("response-rate", conf.MetricRegistry)
 		b.responseSize = getOrRegisterHistogram("response-size", conf.MetricRegistry)
 		b.requestsInFlight = metrics.GetOrRegisterCounter("requests-in-flight", conf.MetricRegistry)
+		Logger.Println("Broker.Open() -- 7")
 		// Do not gather metrics for seeded broker (only used during bootstrap) because they share
 		// the same id (-1) and are already exposed through the global metrics above
 		if b.id >= 0 {
 			b.registerMetrics()
 		}
-
+		Logger.Println("Broker.Open() -- 8")
 		if conf.Net.SASL.Enable {
 			b.connErr = b.authenticateViaSASL()
 
@@ -203,10 +207,10 @@ func (b *Broker) Open(conf *Config) error {
 				return
 			}
 		}
-
+		Logger.Println("Broker.Open() -- 9")
 		b.done = make(chan bool)
 		b.responses = make(chan responsePromise, b.conf.Net.MaxOpenRequests-1)
-
+		Logger.Println("Broker.Open() -- 10")
 		if b.id >= 0 {
 			Logger.Printf("Connected to broker at %s (registered as #%d)\n", b.addr, b.id)
 		} else {
