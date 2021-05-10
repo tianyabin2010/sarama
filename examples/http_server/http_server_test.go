@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Shopify/sarama"
+	"github.com/tianyabin2010/sarama"
 	"github.com/Shopify/sarama/mocks"
 )
 

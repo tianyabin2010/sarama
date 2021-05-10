@@ -877,7 +877,9 @@ func (client *client) tryRefreshMetadata(topics []string, attemptsRemaining int,
 		} else if client.conf.Version.IsAtLeast(V0_10_0_0) {
 			req.Version = 1
 		}
+		Logger.Printf("get meta data begin")
 		response, err := broker.GetMetadata(req)
+		Logger.Printf("get meta data end")
 		switch err.(type) {
 		case nil:
 			allKnownMetaData := len(topics) == 0

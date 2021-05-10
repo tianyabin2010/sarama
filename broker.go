@@ -708,14 +708,14 @@ func (b *Broker) write(buf []byte) (n int, err error) {
 	if err := b.conn.SetWriteDeadline(time.Now().Add(b.conf.Net.WriteTimeout)); err != nil {
 		return 0, err
 	}
-
+	Logger.Printf("conn write begin")
 	return b.conn.Write(buf)
 }
 
 func (b *Broker) send(rb protocolBody, promiseResponse bool, responseHeaderVersion int16) (*responsePromise, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
-
+	Logger.Printf("entry send")
 	if b.conn == nil {
 		if b.connErr != nil {
 			return nil, b.connErr
@@ -736,7 +736,9 @@ func (b *Broker) send(rb protocolBody, promiseResponse bool, responseHeaderVersi
 	requestTime := time.Now()
 	// Will be decremented in responseReceiver (except error or request with NoResponse)
 	b.addRequestInFlightMetrics(1)
+	Logger.Printf("write begin")
 	bytes, err := b.write(buf)
+	Logger.Printf("write end")
 	b.updateOutgoingCommunicationMetrics(bytes)
 	if err != nil {
 		b.addRequestInFlightMetrics(-1)
@@ -762,7 +764,9 @@ func (b *Broker) sendAndReceive(req protocolBody, res protocolBody) error {
 		responseHeaderVersion = res.headerVersion()
 	}
 
+	Logger.Printf("sendAndReceive begin")
 	promise, err := b.send(req, res != nil, responseHeaderVersion)
+	Logger.Printf("sendAndReceive end")
 	if err != nil {
 		return err
 	}

@@ -4,4 +4,4 @@ go 1.15
 
 replace github.com/Shopify/sarama => ../../
 
-require github.com/Shopify/sarama v1.27.0
+require github.com/Shopify/sarama v1.29.0
