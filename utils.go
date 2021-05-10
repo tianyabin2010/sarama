@@ -31,16 +31,23 @@ func dupInt32Slice(input []int32) []int32 {
 }
 
 func withRecover(fn func()) {
+	Logger.Println("entry withRecover")
 	defer func() {
+		Logger.Println("withRecover defer fn -- 1")
 		handler := PanicHandler
 		if handler != nil {
+			Logger.Println("withRecover defer fn -- 2")
 			if err := recover(); err != nil {
+				Logger.Println("withRecover defer fn -- 3")
 				handler(err)
+				Logger.Println("withRecover defer fn -- 4")
 			}
 		}
+		Logger.Println("withRecover defer fn -- 5")
 	}()
-
+	Logger.Println("withRecover start call fn")
 	fn()
+	Logger.Println("withRecover call fn end")
 }
 
 func safeAsyncClose(b *Broker) {
